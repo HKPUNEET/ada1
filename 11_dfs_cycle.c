@@ -5,6 +5,31 @@
 int graph[100][100], visited[100], parent[100];
 int n, count, isCyclic;
 
+/* DFS that also prints the vertices of the current component */
+void printComponent(int u)
+{
+    visited[u] = 1;
+    printf("%d ", u);
+
+    for (int v = 0; v < n; v++)
+    {
+        count++;
+        if (graph[u][v])
+        {
+            if (!visited[v])
+            {
+                parent[v] = u;
+                printComponent(v);
+            }
+            else if (v != parent[u])
+            {
+                isCyclic = 1;
+            }
+        }
+    }
+}
+
+/* Plain DFS used only by the plotter (no printing) */
 void dfs(int u)
 {
     visited[u] = 1;
@@ -46,28 +71,6 @@ void analyseGraph()
         {
             components++;
             printf("Component %d: ", components);
-
-            /* print the component while doing DFS */
-            // We use a simple recursive helper that also prints
-            void printComponent(int u)
-            {
-                visited[u] = 1;
-                printf("%d ", u);
-                for (int v = 0; v < n; v++)
-                {
-                    count++;
-                    if (graph[u][v])
-                    {
-                        if (!visited[v])
-                        {
-                            parent[v] = u;
-                            printComponent(v);
-                        }
-                        else if (v != parent[u])
-                            isCyclic = 1;
-                    }
-                }
-            }
             printComponent(i);
             printf("\n");
         }
@@ -102,6 +105,11 @@ void tester()
 void plotter()
 {
     FILE *fp = fopen("dfs.txt", "w");
+    if (fp == NULL)
+    {
+        printf("Error opening file!\n");
+        return;
+    }
 
     for (n = 2; n <= 10; n++)
     {
@@ -156,9 +164,13 @@ int main()
     int ch;
     printf("1.Tester  2.Plotter\nChoice: ");
     scanf("%d", &ch);
+
     if (ch == 1)
         tester();
-    else
+    else if (ch == 2)
         plotter();
+    else
+        printf("Invalid choice\n");
+
     return 0;
 }
