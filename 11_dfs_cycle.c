@@ -5,11 +5,16 @@
 int graph[100][100], visited[100], parent[100];
 int n, count, isCyclic;
 
-/* DFS that also prints the vertices of the current component */
-void printComponent(int u)
+/* 
+   DFS that can optionally print the component.
+   When printFlag == 1  → prints vertices (used by tester)
+   When printFlag == 0  → silent (used by plotter)
+*/
+void dfs(int u, int printFlag)
 {
     visited[u] = 1;
-    printf("%d ", u);
+    if (printFlag)
+        printf("%d ", u);
 
     for (int v = 0; v < n; v++)
     {
@@ -19,29 +24,7 @@ void printComponent(int u)
             if (!visited[v])
             {
                 parent[v] = u;
-                printComponent(v);
-            }
-            else if (v != parent[u])
-            {
-                isCyclic = 1;
-            }
-        }
-    }
-}
-
-/* Plain DFS used only by the plotter (no printing) */
-void dfs(int u)
-{
-    visited[u] = 1;
-    for (int v = 0; v < n; v++)
-    {
-        count++;
-        if (graph[u][v])
-        {
-            if (!visited[v])
-            {
-                parent[v] = u;
-                dfs(v);
+                dfs(v, printFlag);
             }
             else if (v != parent[u])
             {
@@ -71,7 +54,7 @@ void analyseGraph()
         {
             components++;
             printf("Component %d: ", components);
-            printComponent(i);
+            dfs(i, 1);               // printFlag = 1
             printf("\n");
         }
     }
@@ -133,7 +116,7 @@ void plotter()
         isCyclic = 0;
         for (int i = 0; i < n; i++)
             if (!visited[i])
-                dfs(i);
+                dfs(i, 0);           // printFlag = 0 (silent)
         int best = count;
 
         /* ---------- WORST CASE : complete graph ---------- */
@@ -150,7 +133,7 @@ void plotter()
         isCyclic = 0;
         for (int i = 0; i < n; i++)
             if (!visited[i])
-                dfs(i);
+                dfs(i, 0);           // printFlag = 0 (silent)
         int worst = count;
 
         fprintf(fp, "%d %d %d\n", n, best, worst);
