@@ -3,15 +3,14 @@
 #include <time.h>
 
 int graph[100][100], visited[100], parent[100];
-int n, count;
+int n, count, isCyclic;
 
-/* DFS with parent tracking for cycle detection */
 void dfs(int u)
 {
     visited[u] = 1;
     for (int v = 0; v < n; v++)
     {
-        count++;                       // every matrix access is counted
+        count++;
         if (graph[u][v])
         {
             if (!visited[v])
@@ -19,19 +18,18 @@ void dfs(int u)
                 parent[v] = u;
                 dfs(v);
             }
-            else if (v != parent[u])   // back edge → cycle
+            else if (v != parent[u])
             {
-                // cycle flag will be set in analyseGraph
+                isCyclic = 1;
             }
         }
     }
 }
 
-/* Check connectivity + acyclicity and print connected components */
 void analyseGraph()
 {
     int components = 0;
-    int isCyclic = 0;
+    isCyclic = 0;
 
     for (int i = 0; i < n; i++)
     {
@@ -49,17 +47,12 @@ void analyseGraph()
             components++;
             printf("Component %d: ", components);
 
-            /* collect the component while doing DFS */
-            int stack[100], top = -1;
-            visited[i] = 1;
-            parent[i] = -1;
-            stack[++top] = i;
-
-            while (top >= 0)
+            /* print the component while doing DFS */
+            // We use a simple recursive helper that also prints
+            void printComponent(int u)
             {
-                int u = stack[top--];
+                visited[u] = 1;
                 printf("%d ", u);
-
                 for (int v = 0; v < n; v++)
                 {
                     count++;
@@ -67,17 +60,15 @@ void analyseGraph()
                     {
                         if (!visited[v])
                         {
-                            visited[v] = 1;
                             parent[v] = u;
-                            stack[++top] = v;
+                            printComponent(v);
                         }
                         else if (v != parent[u])
-                        {
                             isCyclic = 1;
-                        }
                     }
                 }
             }
+            printComponent(i);
             printf("\n");
         }
     }
@@ -111,16 +102,15 @@ void tester()
 void plotter()
 {
     FILE *fp = fopen("dfs.txt", "w");
-    srand(time(NULL));
 
     for (n = 2; n <= 10; n++)
     {
-        /* ---------- BEST CASE : sparse graph (a simple path) ---------- */
+        /* ---------- BEST CASE : sparse graph (path) ---------- */
         for (int i = 0; i < n; i++)
             for (int j = 0; j < n; j++)
                 graph[i][j] = 0;
 
-        for (int i = 0; i < n - 1; i++)          // path 0-1-2-...-(n-1)
+        for (int i = 0; i < n - 1; i++)
         {
             graph[i][i + 1] = 1;
             graph[i + 1][i] = 1;
@@ -132,12 +122,13 @@ void plotter()
             parent[i] = -1;
         }
         count = 0;
+        isCyclic = 0;
         for (int i = 0; i < n; i++)
             if (!visited[i])
                 dfs(i);
         int best = count;
 
-        /* ---------- WORST CASE : dense graph (complete graph) ---------- */
+        /* ---------- WORST CASE : complete graph ---------- */
         for (int i = 0; i < n; i++)
             for (int j = 0; j < n; j++)
                 graph[i][j] = (i != j) ? 1 : 0;
@@ -148,6 +139,7 @@ void plotter()
             parent[i] = -1;
         }
         count = 0;
+        isCyclic = 0;
         for (int i = 0; i < n; i++)
             if (!visited[i])
                 dfs(i);
