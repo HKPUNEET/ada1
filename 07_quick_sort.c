@@ -67,6 +67,7 @@ void tester()
 void plotter()
 {
     FILE *fp = fopen("quickavg.txt", "w");
+    FILE *fp1 = fopen("quickavgw.txt", "w");
     srand(time(NULL));
     for (int n = 4; n <= 1024; n *= 2)
     {
@@ -81,6 +82,20 @@ void plotter()
     fclose(fp);
     printf("Data written to quickavg.txt\n");
 }
+for (int n = 4; n <= 1024; n *= 2)
+    {
+        int *a = malloc(n * sizeof(int));
+        for (int i = 0; i < n; i++)
+            a[i] = i;
+        count = 0;
+        quickSort(a, 0, n - 1);
+        fprintf(fp1, "%d %d\n", n, count);
+        free(a);
+    }
+    fclose(fp1);
+    printf("Data written to quickavgw.txt\n");
+}
+
 
 int main()
 {
