@@ -86,6 +86,7 @@ void tester()
 void plotter()
 {
     FILE *fp = fopen("merge.dat", "w");
+    FILE *fp1 = fopen("mergew.dat", "w");
     srand(time(NULL));
 
     for (int n = 100; n <= 5000; n += 100)
@@ -98,6 +99,8 @@ void plotter()
         count = 0;
         mergeSort(a, 0, n - 1);
         long avg = count;
+        fprintf(fp, "%d %ld\n", n, avg);
+        printf("Data written to merge.dat (n avg )\n");
 
         /* ---------- Worst case : interleaved array ---------- */
         for (int i = 0; i < n; i++)
@@ -107,11 +110,11 @@ void plotter()
         mergeSort(a, 0, n - 1);
         long worst = count;
 
-        fprintf(fp, "%d %ld %ld\n", n, avg, worst);
+        fprintf(fp1, "%d %ld\n", n, worst);
         free(a);
     }
     fclose(fp);
-    printf("Data written to merge.dat (n avg worst)\n");
+    printf("Data written to mergew.dat (n avg worst)\n");
 }
 
 int main()
