@@ -1,77 +1,162 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
-int graph[100][100], visited[100];
-int n, count, cyclic, ops;
+int graph[100][100], visited[100], parent[100];
+int n, count;
 
-/* DFS with parent tracking to detect back-edges (cycles) */
-void dfs(int v, int parent)
+/* DFS with parent tracking for cycle detection */
+void dfs(int u)
 {
-    visited[v] = 1;
-    count++;
+    visited[u] = 1;
+    for (int v = 0; v < n; v++)
+    {
+        count++;                       // every matrix access is counted
+        if (graph[u][v])
+        {
+            if (!visited[v])
+            {
+                parent[v] = u;
+                dfs(v);
+            }
+            else if (v != parent[u])   // back edge → cycle
+            {
+                // cycle flag will be set in analyseGraph
+            }
+        }
+    }
+}
+
+/* Check connectivity + acyclicity and print connected components */
+void analyseGraph()
+{
+    int components = 0;
+    int isCyclic = 0;
+
     for (int i = 0; i < n; i++)
     {
-        ops++;
-        if (i != parent && graph[v][i] && visited[i])
-            cyclic = 1; // back edge = cycle
-        if (graph[v][i] && !visited[i])
-            dfs(i, v);
+        visited[i] = 0;
+        parent[i] = -1;
     }
+
+    count = 0;
+    printf("\nConnected Components:\n");
+
+    for (int i = 0; i < n; i++)
+    {
+        if (!visited[i])
+        {
+            components++;
+            printf("Component %d: ", components);
+
+            /* collect the component while doing DFS */
+            int stack[100], top = -1;
+            visited[i] = 1;
+            parent[i] = -1;
+            stack[++top] = i;
+
+            while (top >= 0)
+            {
+                int u = stack[top--];
+                printf("%d ", u);
+
+                for (int v = 0; v < n; v++)
+                {
+                    count++;
+                    if (graph[u][v])
+                    {
+                        if (!visited[v])
+                        {
+                            visited[v] = 1;
+                            parent[v] = u;
+                            stack[++top] = v;
+                        }
+                        else if (v != parent[u])
+                        {
+                            isCyclic = 1;
+                        }
+                    }
+                }
+            }
+            printf("\n");
+        }
+    }
+
+    if (components == 1)
+        printf("Graph is CONNECTED\n");
+    else
+        printf("Graph is NOT CONNECTED (%d components)\n", components);
+
+    if (isCyclic)
+        printf("Graph contains CYCLE(S)\n");
+    else
+        printf("Graph is ACYCLIC\n");
+
+    printf("Total operations = %d\n", count);
 }
 
 void tester()
 {
-    printf("Enter n: ");
+    printf("Enter number of vertices: ");
     scanf("%d", &n);
+
+    printf("Enter adjacency matrix (%d x %d):\n", n, n);
     for (int i = 0; i < n; i++)
-    {
-        visited[i] = 0;
         for (int j = 0; j < n; j++)
             scanf("%d", &graph[i][j]);
-    }
-    count = cyclic = ops = 0;
-    int components = 0;
-    printf("DFS: ");
-    for (int i = 0; i < n; i++)
-        if (!visited[i])
-        {
-            dfs(i, -1);
-            components++;
-        }
-    printf("\n%s | Components=%d | %s\n",
-           count == n ? "Connected" : "Not Connected", components, cyclic ? "Cyclic" : "Acyclic");
+
+    analyseGraph();
 }
 
 void plotter()
 {
-    FILE *best = fopen("dfsbest.txt", "w"), *worst = fopen("dfsworst.txt", "w");
-    for (int sz = 1; sz <= 10; sz++)
+    FILE *fp = fopen("dfs.txt", "w");
+    srand(time(NULL));
+
+    for (n = 2; n <= 10; n++)
     {
-        n = sz;
+        /* ---------- BEST CASE : sparse graph (a simple path) ---------- */
         for (int i = 0; i < n; i++)
-        {
-            visited[i] = 0;
             for (int j = 0; j < n; j++)
                 graph[i][j] = 0;
+
+        for (int i = 0; i < n - 1; i++)          // path 0-1-2-...-(n-1)
+        {
+            graph[i][i + 1] = 1;
+            graph[i + 1][i] = 1;
         }
-        for (int i = 0; i < n - 1; i++)
-            graph[i][i + 1] = 1; // chain
-        ops = count = cyclic = 0;
-        dfs(0, -1);
-        fprintf(best, "%d %d\n", n, ops);
+
         for (int i = 0; i < n; i++)
         {
             visited[i] = 0;
+            parent[i] = -1;
+        }
+        count = 0;
+        for (int i = 0; i < n; i++)
+            if (!visited[i])
+                dfs(i);
+        int best = count;
+
+        /* ---------- WORST CASE : dense graph (complete graph) ---------- */
+        for (int i = 0; i < n; i++)
             for (int j = 0; j < n; j++)
-                graph[i][j] = (i != j);
-        } // complete
-        ops = count = cyclic = 0;
-        dfs(0, -1);
-        fprintf(worst, "%d %d\n", n, ops);
+                graph[i][j] = (i != j) ? 1 : 0;
+
+        for (int i = 0; i < n; i++)
+        {
+            visited[i] = 0;
+            parent[i] = -1;
+        }
+        count = 0;
+        for (int i = 0; i < n; i++)
+            if (!visited[i])
+                dfs(i);
+        int worst = count;
+
+        fprintf(fp, "%d %d %d\n", n, best, worst);
     }
-    fclose(best);
-    fclose(worst);
-    printf("Data written.\n");
+    fclose(fp);
+    printf("Data written to dfs.txt (n best worst)\n");
 }
 
 int main()
@@ -83,4 +168,5 @@ int main()
         tester();
     else
         plotter();
+    return 0;
 }
