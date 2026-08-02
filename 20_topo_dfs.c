@@ -41,6 +41,7 @@ void tester()
 void plotter()
 {
     FILE *fp = fopen("dfstopo.txt", "w");
+    FILE *fp1 = fopen("dfstopow.txt", "w");
     srand(time(NULL));
 
     for (n = 4; n <= 12; n++)
@@ -58,6 +59,7 @@ void plotter()
             if (!visited[i])
                 dfs(i);
         int best = count;
+        fprintf(fp, "%d %d\n", n, best);
 
         /* ---------- WORST CASE : complete DAG (all forward edges) ---------- */
         for (int i = 0; i < n; i++)
@@ -73,7 +75,7 @@ void plotter()
                 dfs(i);
         int worst = count;
 
-        fprintf(fp, "%d %d %d\n", n, best, worst);
+        fprintf(fp1, "%d %d\n", n, worst);
     }
     fclose(fp);
     printf("Data written (n best worst).\n");
