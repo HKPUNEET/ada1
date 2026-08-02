@@ -81,7 +81,7 @@ void plotter()
     }
     fclose(fp);
     printf("Data written to quickavg.txt\n");
-}
+
 for (int n = 4; n <= 1024; n *= 2)
     {
         int *a = malloc(n * sizeof(int));
