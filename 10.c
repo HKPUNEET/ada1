@@ -11,6 +11,7 @@ void topoSort()
     top = -1;
     count = 0;
     int k = 0;
+
     for (int j = 0; j < n; j++)
     {
         indeg[j] = 0;
@@ -20,9 +21,11 @@ void topoSort()
             count++;
         }
     }
+
     for (int i = 0; i < n; i++)
         if (!indeg[i])
             stk[++top] = i;
+
     while (top != -1)
     {
         int u = stk[top--];
@@ -34,6 +37,7 @@ void topoSort()
                 stk[++top] = i;
         }
     }
+
     printf("Topological Order: ");
     for (int i = 0; i < k; i++)
         printf("%d ", result[i]);
@@ -42,32 +46,47 @@ void topoSort()
 
 void tester()
 {
-    count = 0;
     printf("Enter n: ");
     scanf("%d", &n);
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++)
             scanf("%d", &A[i][j]);
+
     topoSort();
     printf("Count = %d\n", count);
 }
 
 void plotter()
 {
-    FILE *fp = fopen("topo.txt", "w");
-    srand(time(NULL));
+    FILE *best = fopen("topo_best.txt", "w");
+    FILE *worst = fopen("topo_worst.txt", "w");
+
     for (n = 2; n <= 10; n++)
     {
-        // Random DAG: edges only go from i to j where i < j
+        /* ---------- BEST CASE : sparse (path) ---------- */
         for (int i = 0; i < n; i++)
             for (int j = 0; j < n; j++)
-                A[i][j] = (i < j) ? rand() % 2 : 0;
+                A[i][j] = 0;
+        for (int i = 0; i < n - 1; i++)
+            A[i][i + 1] = 1;          // 0→1→2→...→(n-1)
+
         count = 0;
         topoSort();
-        fprintf(fp, "%d %d\n", n, count);
+        fprintf(best, "%d %d\n", n, count);
+
+        /* ---------- WORST CASE : dense DAG (all forward edges) ---------- */
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
+                A[i][j] = (i < j) ? 1 : 0;
+
+        count = 0;
+        topoSort();
+        fprintf(worst, "%d %d\n", n, count);
     }
-    fclose(fp);
-    printf("Data written.\n");
+
+    fclose(best);
+    fclose(worst);
+    printf("Data written to topo_best.txt and topo_worst.txt\n");
 }
 
 int main()
@@ -79,4 +98,5 @@ int main()
         tester();
     else
         plotter();
+    return 0;
 }
