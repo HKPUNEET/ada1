@@ -85,8 +85,8 @@ void tester()
 
 void plotter()
 {
-    FILE *fp = fopen("merge.dat", "w");
-    FILE *fp1 = fopen("mergew.dat", "w");
+    FILE *fp = fopen("merge.txt", "w");
+    FILE *fp1 = fopen("mergew.txt", "w");
     srand(time(NULL));
 
     for (int n = 100; n <= 5000; n += 100)
